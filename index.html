@@ -9,29 +9,13 @@
     <style>
         #map {
             width: 100%;
-            height: 90vh;
-        }
-
-        /* General container for page title */
-        #title {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: calc(100% - 20px);
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
-            font-size: 18px;
-            font-weight: bold;
-            text-align: center;
+            height: 98vh;
         }
 
         /* Container for lists */
         #lists-container {
             position: absolute;
-            top: 60px;
+            top: 100px;
             /* Space for the title */
             left: 10px;
             display: flex;
@@ -64,43 +48,25 @@
     </style>
 </head>
 <body>
-    <div id="title">
-    </div>
+    
     <div id="lists-container">
         <div id="student-list" class="list">
             <h3>Studenti</h3>
-            <ul id="list">
+            <ul id="listStudents">
             </ul>
         </div>
         <div id="aziende-list" class="list">
             <h3>Aziende</h3>
-            <ul id="listAziende">
+            <ul id="listCompanies">
             </ul>
         </div>
     </div>
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
     <script>
-
-        /**
-         * Checks if the title starts with a specific string.
-         * @param {string} elementId - The ID of the title container element.
-         * @param {string} searchString - The string to check for at the start of the title.
-         * @returns {boolean} - True if the title starts with the specified string, false otherwise.
-         */
-        function doesTitleStartWith(searchString) {
-            const titleElement = document.getElementById("title");
-            if (titleElement) {
-                return titleElement.textContent.trim().toLowerCase().startsWith(searchString.toLowerCase());
-            }
-            console.warn(`Element with ID "${elementId}" not found.`);
-            return false;
-        }
-
-        const title = { "mode": "quinte Studenti:40 Aziende:24" };
-
-        document.getElementById("title").innerHTML = title.mode;
 
         const map = L.map('map').setView([44.7175, 10.7288], 11);
         // Add a tile layer (you can choose different providers, here we use OpenStreetMap)
@@ -129,49 +95,76 @@
             iconAnchor: [10, 10] // Point of the icon which will correspond to marker's location
         });
 
-        const list = document.getElementById('list');
+        let gDocIdStudents = localStorage['gDocIdStudents'];
+        if (!sessionStorage['gDocIdStudents']) {
+            gDocIdStudents = prompt('Google doc ID students', gDocIdStudents);
+        }
+        if (gDocIdStudents) {
+            sessionStorage['gDocIdStudents'] = localStorage['gDocIdStudents'] = gDocIdStudents;
+        } else {
+            alert('No Google doc ID provided');
+        }
 
-        fetch('students.json').then(resp => resp.json()).then(students => {
-            students.forEach(student => {
-                const marker = L.marker([student.Latitudine, student.Longitudine], { icon: redIcon }).addTo(map);
-                marker.bindPopup(`<b>${student.Cognome}</b><br>Classe: ${student.Classe}<br>Ambito: ${student.ambito}`);
+        let gDocIdCompanies = localStorage['gDocIdCompanies'];
+        if (!sessionStorage['gDocIdCompanies']) {
+            gDocIdCompanies = prompt('Google doc ID companies', gDocIdCompanies);
+        }
+        if (gDocIdCompanies) {
+            sessionStorage['gDocIdCompanies'] = localStorage['gDocIdCompanies'] = gDocIdCompanies;
+        } else {
+            alert('No Google doc ID provided');
+        }
 
-                const listItem = document.createElement('li');
-                listItem.textContent = `${student.Classe} - ${student.Cognome} ${student.Nome.charAt(0)}.`;
-                listItem.addEventListener('click', () => {
-                    marker.openPopup();
-                    map.setView([student.Latitudine, student.Longitudine], 13);
-                });
-                list.appendChild(listItem);
-            });
-        });
+        if (gDocIdStudents && gDocIdCompanies) {
+            Papa.parse(`https://docs.google.com/spreadsheets/d/e/${gDocIdStudents}/pub?output=csv`, {
+                download: true,
+                header: true,
+                dynamicTyping: true,
+                complete: (resp) => {
+                    console.log('Google sheet students data:', resp.data);
 
-        fetch('companies.json').then(resp => resp.json()).then(companies => {
-            companies.forEach(azienda => {
+                    resp.data.forEach(student => {
+                        const marker = L.marker([student.Latitudine, student.Longitudine], { icon: redIcon }).addTo(map);
+                        marker.bindPopup(`<b>${student.Cognome}</b><br>Classe: ${student.Classe}<br>Ambito: ${student.ambito}`);
 
-                let icon = NaN;
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${student.Classe} - ${student.Cognome} ${student.Nome.charAt(0)}.`;
+                        listItem.addEventListener('click', () => {
+                            marker.openPopup();
+                            map.setView([student.Latitudine, student.Longitudine], 13);
+                        });
+                        listStudents.appendChild(listItem);
+                    });
 
-                if (doesTitleStartWith('quarte')) {
-                    // Choose the icon based on the 'classe' property
-                    icon = azienda.quarta == 1 ? blueIconOne : blueIconTwo;
                 }
-                if (doesTitleStartWith('quinte')) {
-
-                    icon = azienda.quinta == 1 ? blueIconOne : blueIconTwo;
-                }
-
-                const marker = L.marker([azienda.Latitudine, azienda.Longitudine], { icon: icon }).addTo(map);
-                marker.bindPopup(`<b>${azienda.nomeAzienda}</b><br>Quarta: ${azienda.quarta}<br>Quinta: ${azienda.quinta}`);
-
-                const listItemA = document.createElement('li');
-                listItemA.textContent = azienda.nomeAzienda;
-                listItemA.addEventListener('click', () => {
-                    marker.openPopup();
-                    map.setView([azienda.Latitudine, azienda.Longitudine], 13);
-                });
-                listAziende.appendChild(listItemA);
             });
-        });
+
+            Papa.parse(`https://docs.google.com/spreadsheets/d/e/${gDocIdCompanies}/pub?output=csv`, {
+                download: true,
+                header: true,
+                dynamicTyping: true,
+                complete: (resp) => {
+                    console.log('Google sheet companies data:', resp.data);
+
+                    resp.data.forEach(azienda => {
+
+                        let icon = blueIconOne;
+
+                        const marker = L.marker([azienda.Latitudine, azienda.Longitudine], { icon: icon }).addTo(map);
+                        marker.bindPopup(`<b>${azienda.Azienda}</b>`);
+
+                        const listItemA = document.createElement('li');
+                        listItemA.textContent = azienda.Azienda;
+                        listItemA.addEventListener('click', () => {
+                            marker.openPopup();
+                            map.setView([azienda.Latitudine, azienda.Longitudine], 13);
+                        });
+                        listCompanies.appendChild(listItemA);
+                    });
+
+                }
+            });
+        }
 
     </script>
 </body>
