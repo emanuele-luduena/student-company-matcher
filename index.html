@@ -3,9 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>student-company-matcher</title>
+    <title>Student Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        #map {
+            width: 100%;
+            height: 90vh;
+        }
+
+        /* General container for page title */
+        #title {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: calc(100% - 20px);
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Container for lists */
+        #lists-container {
+            position: absolute;
+            top: 60px;
+            /* Space for the title */
+            left: 10px;
+            display: flex;
+            /* Makes the lists align horizontally */
+            gap: 10px;
+            /* Space between the lists */
+            z-index: 1000;
+        }
+
+        /* Styling individual lists */
+        .list {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+
+        .list ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .list li {
+            cursor: pointer;
+            margin: 5px 0;
+            color: blue;
+        }
+    </style>
 </head>
 <body>
-    <h1>student-company-matcher</h1>
+    <div id="title">
+    </div>
+    <div id="lists-container">
+        <div id="student-list" class="list">
+            <h3>Studenti</h3>
+            <ul id="list">
+            </ul>
+        </div>
+        <div id="aziende-list" class="list">
+            <h3>Aziende</h3>
+            <ul id="listAziende">
+            </ul>
+        </div>
+    </div>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+
+        /**
+         * Checks if the title starts with a specific string.
+         * @param {string} elementId - The ID of the title container element.
+         * @param {string} searchString - The string to check for at the start of the title.
+         * @returns {boolean} - True if the title starts with the specified string, false otherwise.
+         */
+        function doesTitleStartWith(searchString) {
+            const titleElement = document.getElementById("title");
+            if (titleElement) {
+                return titleElement.textContent.trim().toLowerCase().startsWith(searchString.toLowerCase());
+            }
+            console.warn(`Element with ID "${elementId}" not found.`);
+            return false;
+        }
+
+        const title = { "mode": "quinte Studenti:40 Aziende:24" };
+
+        document.getElementById("title").innerHTML = title.mode;
+
+        const map = L.map('map').setView([44.7175, 10.7288], 11);
+        // Add a tile layer (you can choose different providers, here we use OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        const redIcon = L.divIcon({
+            className: 'custom-red-div-icon', // Add a CSS class for styling
+            html: "<div style='background-color: red; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white;font-size: medium;text-align: center;color: white;'></div>",
+            iconSize: [20, 20], // Size of the icon
+            iconAnchor: [10, 10] // Point of the icon which will correspond to marker's location
+        });
+
+        const blueIconOne = L.divIcon({
+            className: 'custom-blue-div-icon', // Add a CSS class for styling
+            html: "<div style='background-color: blue; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white;font-size: medium;text-align: center;color: white;'>1</div>",
+            iconSize: [20, 20], // Size of the icon
+            iconAnchor: [10, 10] // Point of the icon which will correspond to marker's location
+        });
+
+        const blueIconTwo = L.divIcon({
+            className: 'custom-blue-div-icon', // Add a CSS class for styling
+            html: "<div style='background-color: blue; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white;font-size: medium;text-align: center;color: white;'>2</div>",
+            iconSize: [20, 20], // Size of the icon
+            iconAnchor: [10, 10] // Point of the icon which will correspond to marker's location
+        });
+
+        const list = document.getElementById('list');
+
+        fetch('students.json').then(resp => resp.json()).then(students => {
+            students.forEach(student => {
+                const marker = L.marker([student.Latitudine, student.Longitudine], { icon: redIcon }).addTo(map);
+                marker.bindPopup(`<b>${student.Cognome}</b><br>Classe: ${student.Classe}<br>Ambito: ${student.ambito}`);
+
+                const listItem = document.createElement('li');
+                listItem.textContent = `${student.Classe} - ${student.Cognome} ${student.Nome.charAt(0)}.`;
+                listItem.addEventListener('click', () => {
+                    marker.openPopup();
+                    map.setView([student.Latitudine, student.Longitudine], 13);
+                });
+                list.appendChild(listItem);
+            });
+        });
+
+        fetch('companies.json').then(resp => resp.json()).then(companies => {
+            companies.forEach(azienda => {
+
+                let icon = NaN;
+
+                if (doesTitleStartWith('quarte')) {
+                    // Choose the icon based on the 'classe' property
+                    icon = azienda.quarta == 1 ? blueIconOne : blueIconTwo;
+                }
+                if (doesTitleStartWith('quinte')) {
+
+                    icon = azienda.quinta == 1 ? blueIconOne : blueIconTwo;
+                }
+
+                const marker = L.marker([azienda.Latitudine, azienda.Longitudine], { icon: icon }).addTo(map);
+                marker.bindPopup(`<b>${azienda.nomeAzienda}</b><br>Quarta: ${azienda.quarta}<br>Quinta: ${azienda.quinta}`);
+
+                const listItemA = document.createElement('li');
+                listItemA.textContent = azienda.nomeAzienda;
+                listItemA.addEventListener('click', () => {
+                    marker.openPopup();
+                    map.setView([azienda.Latitudine, azienda.Longitudine], 13);
+                });
+                listAziende.appendChild(listItemA);
+            });
+        });
+
+    </script>
 </body>
 </html>
