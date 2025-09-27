@@ -76,21 +76,14 @@
 
         const redIcon = L.divIcon({
             className: 'custom-red-div-icon', // Add a CSS class for styling
-            html: "<div style='background-color: red; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white;font-size: medium;text-align: center;color: white;'></div>",
+            html: "<div style='background-color: red; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white;font-size: medium;text-align: center;color: white;'>S</div>",
             iconSize: [20, 20], // Size of the icon
             iconAnchor: [10, 10] // Point of the icon which will correspond to marker's location
         });
 
         const blueIconOne = L.divIcon({
             className: 'custom-blue-div-icon', // Add a CSS class for styling
-            html: "<div style='background-color: blue; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white;font-size: medium;text-align: center;color: white;'>1</div>",
-            iconSize: [20, 20], // Size of the icon
-            iconAnchor: [10, 10] // Point of the icon which will correspond to marker's location
-        });
-
-        const blueIconTwo = L.divIcon({
-            className: 'custom-blue-div-icon', // Add a CSS class for styling
-            html: "<div style='background-color: blue; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white;font-size: medium;text-align: center;color: white;'>2</div>",
+            html: "<div style='background-color: blue; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white;font-size: medium;text-align: center;color: white;'>C</div>",
             iconSize: [20, 20], // Size of the icon
             iconAnchor: [10, 10] // Point of the icon which will correspond to marker's location
         });
@@ -102,7 +95,7 @@
         if (gDocIdStudents) {
             sessionStorage['gDocIdStudents'] = localStorage['gDocIdStudents'] = gDocIdStudents;
         } else {
-            alert('No Google doc ID provided');
+            alert('No Google doc ID students provided');
         }
 
         let gDocIdCompanies = localStorage['gDocIdCompanies'];
@@ -112,7 +105,7 @@
         if (gDocIdCompanies) {
             sessionStorage['gDocIdCompanies'] = localStorage['gDocIdCompanies'] = gDocIdCompanies;
         } else {
-            alert('No Google doc ID provided');
+            alert('No Google doc ID companies provided');
         }
 
         if (gDocIdStudents && gDocIdCompanies) {
@@ -125,7 +118,7 @@
 
                     resp.data.forEach(student => {
                         const marker = L.marker([student.Latitudine, student.Longitudine], { icon: redIcon }).addTo(map);
-                        marker.bindPopup(`<b>${student.Cognome}</b><br>Classe: ${student.Classe}<br>Ambito: ${student.ambito}`);
+                        marker.bindPopup(`<b>${student.Classe} ${student.Cognome} ${student.Nome}</b><br>Ambito: ${student.Ambito}`);
 
                         const listItem = document.createElement('li');
                         listItem.textContent = `${student.Classe} - ${student.Cognome} ${student.Nome.charAt(0)}.`;
