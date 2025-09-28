@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <style>
+        body {
+            font-family: sans-serif;
+        }
+
         #map {
             width: 100%;
             height: 98vh;
@@ -45,6 +49,32 @@
             margin: 5px 0;
             color: blue;
         }
+
+        .custom-red-div-icon {
+            background-color: red;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid white;
+            font-size: medium;
+            text-align: center;
+            color: white;
+            text-shadow: 0 0 4px black, 0 0 4px black, 0 0 4px black, 0 0 4px black;
+            text-wrap: nowrap;
+        }
+
+        .custom-blue-div-icon {
+            background-color: blue;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid white;
+            font-size: medium;
+            text-align: center;
+            color: white;
+            text-shadow: 0 0 4px black, 0 0 4px black, 0 0 4px black, 0 0 4px black;
+            text-wrap: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -68,57 +98,48 @@
 
     <script>
 
-        const map = L.map('map').setView([44.7175, 10.7288], 11);
+        const map = L.map('map').setView([44.78359173214353, 10.871052839390842], 11);
         // Add a tile layer (you can choose different providers, here we use OpenStreetMap)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        const redIcon = L.divIcon({
-            className: 'custom-red-div-icon', // Add a CSS class for styling
-            html: "<div style='background-color: red; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white;font-size: medium;text-align: center;color: white;'>S</div>",
-            iconSize: [20, 20], // Size of the icon
-            iconAnchor: [10, 10] // Point of the icon which will correspond to marker's location
-        });
-
-        const blueIconOne = L.divIcon({
-            className: 'custom-blue-div-icon', // Add a CSS class for styling
-            html: "<div style='background-color: blue; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white;font-size: medium;text-align: center;color: white;'>C</div>",
-            iconSize: [20, 20], // Size of the icon
-            iconAnchor: [10, 10] // Point of the icon which will correspond to marker's location
-        });
-
-        let gDocIdStudents = localStorage['gDocIdStudents'];
-        if (!sessionStorage['gDocIdStudents']) {
-            gDocIdStudents = prompt('Google doc ID students', gDocIdStudents);
+        let studentsUrl = localStorage['studentsUrl'];
+        if (!sessionStorage['studentsUrl']) {
+            studentsUrl = prompt('Students (Classe, Cognome, Nome, Ambito, Latitudine, Longitudine) URL', studentsUrl);
         }
-        if (gDocIdStudents) {
-            sessionStorage['gDocIdStudents'] = localStorage['gDocIdStudents'] = gDocIdStudents;
+        if (studentsUrl) {
+            sessionStorage['studentsUrl'] = localStorage['studentsUrl'] = studentsUrl;
         } else {
-            alert('No Google doc ID students provided');
+            alert('No students URL provided');
         }
 
-        let gDocIdCompanies = localStorage['gDocIdCompanies'];
-        if (!sessionStorage['gDocIdCompanies']) {
-            gDocIdCompanies = prompt('Google doc ID companies', gDocIdCompanies);
+        let companiesUrl = localStorage['companiesUrl'];
+        if (!sessionStorage['companiesUrl']) {
+            companiesUrl = prompt('Companies (Azienda, Latitudine, Longitudine) URL', companiesUrl);
         }
-        if (gDocIdCompanies) {
-            sessionStorage['gDocIdCompanies'] = localStorage['gDocIdCompanies'] = gDocIdCompanies;
+        if (companiesUrl) {
+            sessionStorage['companiesUrl'] = localStorage['companiesUrl'] = companiesUrl;
         } else {
-            alert('No Google doc ID companies provided');
+            alert('No companies URL provided');
         }
 
-        if (gDocIdStudents && gDocIdCompanies) {
-            Papa.parse(`https://docs.google.com/spreadsheets/d/e/${gDocIdStudents}/pub?output=csv`, {
+        if (studentsUrl && companiesUrl) {
+            Papa.parse(studentsUrl, {
                 download: true,
                 header: true,
                 dynamicTyping: true,
                 complete: (resp) => {
-                    console.log('Google sheet students data:', resp.data);
+                    console.log('students data:', resp.data);
 
                     resp.data.forEach(student => {
-                        const marker = L.marker([student.Latitudine, student.Longitudine], { icon: redIcon }).addTo(map);
-                        marker.bindPopup(`<b>${student.Classe} ${student.Cognome} ${student.Nome}</b><br>Ambito: ${student.Ambito}`);
+                        const marker = L.marker([student.Latitudine, student.Longitudine], { icon: L.divIcon({
+                            className: 'custom-red-div-icon', // Add a CSS class for styling
+                            html: `<div>${student.Cognome.toUpperCase()} ${student.Nome.charAt(0)}</div>`,
+                            iconSize: [20, 20],
+                            iconAnchor: [10, 10] // Point of the icon which will correspond to marker's location
+                        })}).addTo(map);
+                        marker.bindPopup(Object.entries(student).map(([key, value]) => `${key}: <b>${value}</b>`).join('<br>'));
 
                         const listItem = document.createElement('li');
                         listItem.textContent = `${student.Classe} - ${student.Cognome} ${student.Nome.charAt(0)}.`;
@@ -132,19 +153,21 @@
                 }
             });
 
-            Papa.parse(`https://docs.google.com/spreadsheets/d/e/${gDocIdCompanies}/pub?output=csv`, {
+            Papa.parse(companiesUrl, {
                 download: true,
                 header: true,
                 dynamicTyping: true,
                 complete: (resp) => {
-                    console.log('Google sheet companies data:', resp.data);
+                    console.log('companies data:', resp.data);
 
                     resp.data.forEach(azienda => {
-
-                        let icon = blueIconOne;
-
-                        const marker = L.marker([azienda.Latitudine, azienda.Longitudine], { icon: icon }).addTo(map);
-                        marker.bindPopup(`<b>${azienda.Azienda}</b>`);
+                        const marker = L.marker([azienda.Latitudine, azienda.Longitudine], { icon: L.divIcon({
+                            className: 'custom-blue-div-icon', // Add a CSS class for styling
+                            html: `<div>${azienda.Azienda}</div>`,
+                            iconSize: [20, 20],
+                            iconAnchor: [10, 10] // Point of the icon which will correspond to marker's location
+                        })}).addTo(map);
+                        marker.bindPopup(Object.entries(azienda).map(([key, value]) => `${key}: <b>${value}</b>`).join('<br>'));
 
                         const listItemA = document.createElement('li');
                         listItemA.textContent = azienda.Azienda;
