@@ -99,6 +99,7 @@
     <script>
 
         const map = L.map('map').setView([44.78359173214353, 10.871052839390842], 11);
+        const singleElZoom = 14;
         // Add a tile layer (you can choose different providers, here we use OpenStreetMap)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -106,7 +107,7 @@
 
         let studentsUrl = localStorage['studentsUrl'];
         if (!sessionStorage['studentsUrl']) {
-            studentsUrl = prompt('Students (Classe, Cognome, Nome, Ambito, Latitudine, Longitudine) URL', studentsUrl);
+            studentsUrl = prompt('Students (Classe, Cognome, Nome, Ambito, Coordinate) URL', studentsUrl);
         }
         if (studentsUrl) {
             sessionStorage['studentsUrl'] = localStorage['studentsUrl'] = studentsUrl;
@@ -116,7 +117,7 @@
 
         let companiesUrl = localStorage['companiesUrl'];
         if (!sessionStorage['companiesUrl']) {
-            companiesUrl = prompt('Companies (Azienda, Latitudine, Longitudine) URL', companiesUrl);
+            companiesUrl = prompt('Companies (Azienda, Coordinate) URL', companiesUrl);
         }
         if (companiesUrl) {
             sessionStorage['companiesUrl'] = localStorage['companiesUrl'] = companiesUrl;
@@ -133,7 +134,7 @@
                     console.log('students data:', resp.data);
 
                     resp.data.forEach(student => {
-                        const marker = L.marker([student.Latitudine, student.Longitudine], { icon: L.divIcon({
+                        const marker = L.marker(student.Coordinate.split(',').map(_ => _.trim()).map(_ => parseFloat(_)), { icon: L.divIcon({
                             className: 'custom-red-div-icon', // Add a CSS class for styling
                             html: `<div>${student.Cognome.toUpperCase()} ${student.Nome.charAt(0)}</div>`,
                             iconSize: [20, 20],
@@ -145,7 +146,7 @@
                         listItem.textContent = `${student.Classe} - ${student.Cognome} ${student.Nome.charAt(0)}.`;
                         listItem.addEventListener('click', () => {
                             marker.openPopup();
-                            map.setView([student.Latitudine, student.Longitudine], 13);
+                            map.setView(student.Coordinate.split(',').map(_ => _.trim()).map(_ => parseFloat(_)), singleElZoom);
                         });
                         listStudents.appendChild(listItem);
                     });
@@ -160,20 +161,20 @@
                 complete: (resp) => {
                     console.log('companies data:', resp.data);
 
-                    resp.data.forEach(azienda => {
-                        const marker = L.marker([azienda.Latitudine, azienda.Longitudine], { icon: L.divIcon({
+                    resp.data.forEach(company => {
+                        const marker = L.marker(company.Coordinate.split(',').map(_ => _.trim()).map(_ => parseFloat(_)), { icon: L.divIcon({
                             className: 'custom-blue-div-icon', // Add a CSS class for styling
-                            html: `<div>${azienda.Azienda}</div>`,
+                            html: `<div>${company.Azienda}</div>`,
                             iconSize: [20, 20],
                             iconAnchor: [10, 10] // Point of the icon which will correspond to marker's location
                         })}).addTo(map);
-                        marker.bindPopup(Object.entries(azienda).map(([key, value]) => `${key}: <b>${value}</b>`).join('<br>'));
+                        marker.bindPopup(Object.entries(company).map(([key, value]) => `${key}: <b>${value}</b>`).join('<br>'));
 
                         const listItemA = document.createElement('li');
-                        listItemA.textContent = azienda.Azienda;
+                        listItemA.textContent = company.Azienda;
                         listItemA.addEventListener('click', () => {
                             marker.openPopup();
-                            map.setView([azienda.Latitudine, azienda.Longitudine], 13);
+                            map.setView(company.Coordinate.split(',').map(_ => _.trim()).map(_ => parseFloat(_)), singleElZoom);
                         });
                         listCompanies.appendChild(listItemA);
                     });
