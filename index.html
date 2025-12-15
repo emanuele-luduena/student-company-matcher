@@ -100,6 +100,21 @@
 
         const map = L.map('map').setView([44.78359173214353, 10.871052839390842], 11);
         const singleElZoom = 14;
+        
+        // Try to get user's current position
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    // Success: center map on user's location
+                    map.setView([position.coords.latitude, position.coords.longitude], 11);
+                },
+                (error) => {
+                    // Error or denied: keep the default position already set
+                    console.log('Geolocation error:', error.message);
+                }
+            );
+        }
+        
         // Add a tile layer (you can choose different providers, here we use OpenStreetMap)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
