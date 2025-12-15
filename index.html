@@ -105,9 +105,11 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        let studentsUrl = localStorage['studentsUrl'];
-        if (!sessionStorage['studentsUrl']) {
-            studentsUrl = prompt('Students (Classe, Cognome, Nome, Ambito, Coordinate) URL', studentsUrl);
+        const params = new URLSearchParams(window.location.search);
+
+        let studentsUrl = params.get('studentsUrl') || sessionStorage['studentsUrl'] || localStorage['studentsUrl'];
+        if (!studentsUrl) {
+            studentsUrl = prompt('Students (Classe, Cognome, Nome, Ambito, Coordinate) URL');
         }
         if (studentsUrl) {
             sessionStorage['studentsUrl'] = localStorage['studentsUrl'] = studentsUrl;
@@ -115,8 +117,8 @@
             alert('No students URL provided');
         }
 
-        let companiesUrl = localStorage['companiesUrl'];
-        if (!sessionStorage['companiesUrl']) {
+        let companiesUrl = params.get('companiesUrl') || sessionStorage['companiesUrl'] || localStorage['companiesUrl'];
+        if (!companiesUrl) {
             companiesUrl = prompt('Companies (Azienda, Coordinate) URL', companiesUrl);
         }
         if (companiesUrl) {
