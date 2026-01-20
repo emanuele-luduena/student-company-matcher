@@ -162,8 +162,10 @@
                 dynamicTyping: true,
                 complete: (resp) => {
                     console.log('companies data:', resp.data);
+                    let cleanCompanies = resp.data.filter(_ => _.Azienda?.trim() && _.Coordinate?.trim() && _.Coordinate.includes(','));
+                    console.log('clean companies:', cleanCompanies);
 
-                    resp.data.forEach(company => {
+                    cleanCompanies.forEach(company => {
                         const marker = L.marker(company.Coordinate.split(',').map(_ => _.trim()).map(_ => parseFloat(_)), { icon: L.divIcon({
                             className: 'custom-blue-div-icon', // Add a CSS class for styling
                             html: `<div>${company.Azienda}</div>`,
