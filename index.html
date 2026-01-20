@@ -173,7 +173,7 @@
                     cleanCompanies = [...new Map(cleanCompanies.map(_ => [_.Azienda, _])).values()];
                     console.log('clean companies:', cleanCompanies);
                     
-                    companies.forEach(company => {
+                    cleanCompanies.forEach(company => {
                         const marker = L.marker(company.Coordinate.split(',').map(_ => _.trim()).map(Number), { icon: L.divIcon({
                             className: 'custom-blue-div-icon', // Add a CSS class for styling
                             html: `<div>${company.Azienda}</div>`,
