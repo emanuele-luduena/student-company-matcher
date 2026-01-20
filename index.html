@@ -135,6 +135,7 @@
                 complete: (resp) => {
                     console.log('students data:', resp.data);
                     let cleanStudents = resp.data;
+                    cleanStudents = cleanStudents.filter(_ => _.Classe?.trim() && _.Cognome?.trim() && _.Nome?.trim() && _.Coordinate?.trim());
                     // remove duplicates
                     cleanStudents = [...new Map(cleanStudents.map(_ => [`${_.Classe}-${_.Cognome}-${_.Nome}.`, _])).values()];
                     console.log('clean students:', cleanStudents);
@@ -167,6 +168,7 @@
                 complete: (resp) => {
                     console.log('companies data:', resp.data);
                     let cleanCompanies = resp.data;
+                    cleanCompanies = cleanCompanies.filter(_ => _.Azienda?.trim() && _.Coordinate?.trim() && _.Coordinate.includes(','));
                     // remove duplicates
                     cleanCompanies = [...new Map(cleanCompanies.map(_ => [_.Azienda, _])).values()];
                     console.log('clean companies:', cleanCompanies);
