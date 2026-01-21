@@ -140,6 +140,7 @@
                     cleanStudents = cleanStudents.filter(_ => _.Classe?.trim() && _.Cognome?.trim() && _.Nome?.trim() && _.Coordinate?.trim());
                     // remove duplicates
                     cleanStudents = [...new Map(cleanStudents.map(_ => [`${_.Classe}-${_.Cognome}-${_.Nome}.`, _])).values()];
+                    cleanStudents.sort((a, b) => a.Classe.localeCompare(b.Classe) || a.Cognome.localeCompare(b.Cognome) || a.Nome.localeCompare(b.Nome));
                     console.log('clean students:', cleanStudents);
 
                     cleanStudents.forEach(student => {
@@ -173,6 +174,7 @@
                     cleanCompanies = cleanCompanies.filter(_ => _.Azienda?.trim() && _.Coordinate?.trim() && _.Coordinate.includes(','));
                     // remove duplicates
                     cleanCompanies = [...new Map(cleanCompanies.map(_ => [_.Azienda, _])).values()];
+                    cleanCompanies.sort((a, b) => a.Azienda.localeCompare(b.Azienda));
                     console.log('clean companies:', cleanCompanies);
                     
                     cleanCompanies.forEach(company => {
