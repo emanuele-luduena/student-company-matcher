@@ -55,6 +55,9 @@
         .red-background {
             background-color: red;
         }
+        .yellow-background {
+            background-color: darkgoldenrod;
+        }
         .blue-background {
             background-color: blue;
         }
@@ -151,7 +154,7 @@
 
                     cleanStudents.forEach(student => {
                         const marker = L.marker(student.Coordinate.split(',').map(_ => _.trim()).map(Number), { icon: L.divIcon({
-                            className: 'custom-div-icon red-background', // Add a CSS class for styling
+                            className: `custom-div-icon ${student.Classe.startsWith('5') ? 'red' : 'yellow'}-background`, // Add a CSS class for styling
                             html: `<div>${student.Classe} ${student.Cognome.toUpperCase()} ${student.Nome.toUpperCase().charAt(0)}</div>`,
                             iconSize: [20, 20],
                             iconAnchor: [10, 10] // Point of the icon which will correspond to marker's location
